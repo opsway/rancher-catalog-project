@@ -7,6 +7,7 @@ services:
     - APPLICATION_ENV=dev
     - PROTO=http
     - 'HTTP_AUTH=opsway:$$apr1$$JrTqxzFl$$68H8lccyXDEj9K2BlaCuC1'
+    - PHPFPM_PORT_9000_TCP_ADDR=phpfpm.nginx
     stdin_open: true
     tty: true
     links:
