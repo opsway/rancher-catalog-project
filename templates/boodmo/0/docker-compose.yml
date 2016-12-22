@@ -65,5 +65,7 @@ services:
     image: redis:3
   elasticsearch2:
     image: elasticsearch:2
+    command:
+    - -Des.discovery.zen.ping.multicast.enabled=false
     volumes:
     - /var/www/srv/${sandbox_key}/esdata:/usr/share/elasticsearch/data
