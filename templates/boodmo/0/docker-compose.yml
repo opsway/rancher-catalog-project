@@ -3,9 +3,10 @@ services:
   nginx:
     image: opsway/webserver:nginx
     environment:
-      DOMAIN: ${sandbox_key}.boodmo.opsway-dev.com
-      APPLICATION_ENV: dev
-      PROTO: http
+    - DOMAIN=${sandbox_key}.boodmo.opsway-dev.com
+    - APPLICATION_ENV=dev
+    - PROTO=http
+    - 'HTTP_AUTH=opsway:$$apr1$$JrTqxzFl$$68H8lccyXDEj9K2BlaCuC1'
     stdin_open: true
     tty: true
     links:
