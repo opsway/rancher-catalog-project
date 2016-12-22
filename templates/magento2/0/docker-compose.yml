@@ -1,0 +1,103 @@
+version: '2'
+services:
+  web:
+    image: opsway/mage2nginx
+    links:
+    - pxc
+    - cache
+    - session
+    volumes_from:
+    - appdata
+    labels:
+      io.rancher.scheduler.affinity:host_label: node=app
+      io.rancher.sidekicks: php,appdata
+      io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.global: 'true'
+
+  appdata:
+    image: ${magento_image}
+    volume_driver: rancher-efs
+    volumes:
+    - ${mysql_database}-etc:/var/www/html/app/etc
+    - ${mysql_database}-media:/var/www/html/pub/media
+    - ${mysql_database}-var:/var/www/html/pub/var
+    - ${mysql_database}-static:/var/www/html/pub/static
+    labels:
+      io.rancher.scheduler.affinity:host_label: node=app
+      io.rancher.container.start_once: 'true'
+      io.rancher.container.pull_image: always
+      io.rancher.container.hostname_override: container_name
+    environment:
+    - M2SETUP_DB_HOST=pxc
+    - M2SETUP_DB_NAME=${mysql_database}
+    - M2SETUP_DB_USER=${mysql_user}
+    - M2SETUP_DB_PASSWORD=${mysql_password}
+    - M2SETUP_BASE_URL=${base_url}
+    - M2SETUP_ADMIN_USER=${admin_user}
+    - M2SETUP_ADMIN_PASSWORD=${admin_password}
+
+  php:
+    image: opsway/mage2php
+    labels:
+      io.rancher.container.pull_image: always
+      io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.affinity:host_label: node=app
+    volumes_from:
+    - appdata
+
+  cache:
+    image: redis
+    labels:
+      io.rancher.scheduler.affinity:host_label: node=data
+
+  session:
+    image: redis
+    labels:
+      io.rancher.scheduler.affinity:host_label: node=data
+
+  pxc-server:
+    image: flowman/percona-xtradb-cluster:5.6.28-1
+    environment:
+    - MYSQL_ROOT_PASSWORD=${mysql_root_password}
+    - MYSQL_DATABASE=${mysql_database}
+    - MYSQL_USER=${mysql_user}
+    - MYSQL_PASSWORD=${mysql_password}
+    - PXC_SST_PASSWORD=${pxc_sst_password}
+    entrypoint:
+    - bash
+    - -x
+    - /opt/rancher/start_pxc
+    network_mode: container:pxc
+    volumes_from:
+    - pxc-data
+    labels:
+      io.rancher.container.hostname_override: container_name
+  pxc-data:
+    image: flowman/percona-xtradb-cluster:5.6.28-1
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    network_mode: none
+    volumes:
+    - /docker-entrypoint-initdb.d
+    - /etc/mysql/conf.d
+    - /var/lib/mysql
+    command:
+    - /bin/true
+    labels:
+      io.rancher.container.start_once: 'true'
+  pxc:
+    image: flowman/percona-xtradb-cluster-confd:v0.2.0
+    volumes_from:
+    - pxc-data
+    labels:
+      io.rancher.scheduler.affinity:host_label: node=data
+      io.rancher.sidekicks: pxc-clustercheck,pxc-server,pxc-data
+      io.rancher.container.hostname_override: container_name
+      io.rancher.scheduler.global: 'true'
+  pxc-clustercheck:
+    image: flowman/percona-xtradb-cluster-clustercheck:v2.0
+    network_mode: container:pxc
+    volumes_from:
+    - pxc-data
+    labels:
+      io.rancher.container.hostname_override: container_name

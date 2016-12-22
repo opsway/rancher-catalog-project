@@ -1,0 +1,8 @@
+name: Magento 2 Project
+description: |
+  Magento 2
+version: 2.1.3
+category: Shop
+maintainer: alvro@opsway.com
+license: MIT
+projectURL: http://magento.com

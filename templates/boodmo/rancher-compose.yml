@@ -1,0 +1,44 @@
+version: '2'
+.catalog:
+  name: "Boodmo"
+  version: "1.0.0"
+  description: "Internal project"
+  minimum_rancher_version: v1.2.0
+  questions:
+    - variable: "sandbox_key"
+      description: "Key for sandbox"
+      label: "Sandbox Key:"
+      required: true
+      default: "alvro"
+      type: "string"
+    - variable: "database_name"
+      description: "Database name"
+      label: "Database name:"
+      required: true
+      default: "boodmo"
+      type: "string"
+    - variable: "database_user"
+      description: "Database User"
+      label: "Database User:"
+      required: true
+      default: "root"
+      type: "string"
+    - variable: "database_pass"
+      description: "Database Password"
+      label: "Database Password:"
+      required: true
+      default: "password"
+      type: "password"
+services:
+  nginx:
+    scale: 1
+  phpfpm:
+    scale: 1
+  database:
+    scale: 1
+  cache:
+    scale: 1
+  session:
+    scale: 1
+  elasticsearch2:
+    scale: 1

@@ -1,0 +1,127 @@
+version: '2'
+.catalog:
+  name: "Magento 2"
+  version: "2.1.3"
+  description: "Magento2"
+  minimum_rancher_version: v1.2.0
+  questions:
+    - variable: "magento_image"
+      description: "Docker image of Magento project"
+      label: "Docker Magento Image:"
+      required: true
+      default: "opsway/m2test"
+      type: "string"
+    - variable: "base_url"
+      description: "Magento URL (with slash on end)"
+      label: "Magento Host:"
+      required: true
+      default: "http://m2.local.opsway-dev.com/"
+      type: "string"
+    - variable: "admin_user"
+      description: "Magento Admin User"
+      label: "Magento User:"
+      required: true
+      type: "string"
+    - variable: "admin_password"
+      description: "Magento Admin Password"
+      label: "Magento Password:"
+      required: true
+      type: "password"
+    - variable: "mysql_root_password"
+      type: string
+      required: true
+      label: "MySQL Root Password"
+      description: "Password given to the root mysql user"
+      default: "password"
+    - variable: "pxc_sst_password"
+      type: string
+      required: true
+      label: "PXC SST Password"
+      description: "Password given to the sst mysql user"
+      default: "password"
+    - variable: "mysql_database"
+      type: string
+      required: false
+      label: "MySQL Database Name"
+      description: "MySQL database to create"
+    - variable: "mysql_user"
+      type: string
+      required: false
+      description: "MySQL user for the created database"
+      label: "MySQL DB User"
+    - variable: "mysql_password"
+      type: string
+      required: false
+      label: "MySQL DB Password"
+      description: "Password for the MySQL user of the created database"
+services:
+  pxc-server:
+    metadata:
+      mysqld: |
+        innodb_buffer_pool_size=512M
+        innodb_doublewrite=0
+        innodb_flush_log_at_trx_commit=0
+        innodb_file_per_table=1
+        innodb_log_file_size=128M
+        innodb_log_buffer_size=64M
+        innodb_support_xa=0
+        query_cache_size=0
+        query_cache_type=0
+        sync_binlog=0
+        max_connections=1000
+        wsrep_sst_auth=sstuser:${pxc_sst_password}
+    scale: 1
+  pxc-data:
+    metadata:
+      mysqld: |
+        innodb_buffer_pool_size=512M
+        innodb_doublewrite=0
+        innodb_flush_log_at_trx_commit=0
+        innodb_file_per_table=1
+        innodb_log_file_size=128M
+        innodb_log_buffer_size=64M
+        innodb_support_xa=0
+        query_cache_size=0
+        query_cache_type=0
+        sync_binlog=0
+        max_connections=1000
+        wsrep_sst_auth=sstuser:${pxc_sst_password}
+    scale: 1
+  pxc:
+    metadata:
+      mysqld: |
+        innodb_buffer_pool_size=512M
+        innodb_doublewrite=0
+        innodb_flush_log_at_trx_commit=0
+        innodb_file_per_table=1
+        innodb_log_file_size=128M
+        innodb_log_buffer_size=64M
+        innodb_support_xa=0
+        query_cache_size=0
+        query_cache_type=0
+        sync_binlog=0
+        max_connections=1000
+        wsrep_sst_auth=sstuser:${pxc_sst_password}
+    health_check:
+      healthy_threshold: 2
+      response_timeout: 2000
+      port: 8000
+      unhealthy_threshold: 3
+      interval: 2000
+      strategy: none
+      request_line: GET / HTTP/1.1
+  pxc-clustercheck:
+    metadata:
+      mysqld: |
+        innodb_buffer_pool_size=512M
+        innodb_doublewrite=0
+        innodb_flush_log_at_trx_commit=0
+        innodb_file_per_table=1
+        innodb_log_file_size=128M
+        innodb_log_buffer_size=64M
+        innodb_support_xa=0
+        query_cache_size=0
+        query_cache_type=0
+        sync_binlog=0
+        max_connections=1000
+        wsrep_sst_auth=sstuser:${pxc_sst_password}

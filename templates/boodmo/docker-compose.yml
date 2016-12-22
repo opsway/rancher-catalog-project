@@ -1,0 +1,57 @@
+version: '2'
+services:
+  nginx:
+    image: opsway/webserver:nginx
+    environment:
+      DOMAIN: ${sandbox_key}.boodmo.opsway-dev.com
+      APPLICATION_ENV: dev
+      PROTO: http
+    stdin_open: true
+    tty: true
+    links:
+    - phpfpm
+    volumes_from:
+    - phpfpm
+    labels:
+      io.rancher.container.pull_image: always
+
+  phpfpm:
+    image: opswaycom/boodmo-app
+    environment:
+      DOMAIN: ${sandbox_key}.boodmo.opsway-dev.com
+      DATABASE_NAME: ${database_name}
+      DATABASE_USER: ${database_user}
+      DATABASE_PASS: ${database_pass}
+      CACHE_TYPE: array
+      PROTO: http
+    working_dir: /app
+    links:
+    - elasticsearch2:elasticsearch2
+    - cache:cache
+    - session:session
+    - database:database
+    stdin_open: true
+    command:
+    - php-fpm
+    volumes:
+    - /var/www/srv/${sandbox_key}/app:/app
+    - /var/www/frontend/shared/public/media:/app/public/media
+    tty: true
+    labels:
+      io.rancher.container.pull_image: always
+  database:
+    image: opsway/webserver:postgres
+    environment:
+      POSTGRES_DB: ${database_name}
+      POSTGRES_PASSWORD: ${database_user}
+      POSTGRES_USER: ${database_pass}
+    volumes:
+    - /var/www/srv/${sandbox_key}/pgdata:/var/lib/postgresql/data
+  cache:
+    image: redis:3
+  session:
+    image: redis:3
+  elasticsearch2:
+    image: elasticsearch:2
+    volumes:
+    - /var/www/srv/${sandbox_key}/esdata:/usr/share/elasticsearch/data
