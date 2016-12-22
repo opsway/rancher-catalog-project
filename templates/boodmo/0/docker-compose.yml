@@ -10,7 +10,7 @@ services:
     stdin_open: true
     tty: true
     links:
-    - phpfpm
+    - phpfpm:phpfpm
     volumes_from:
     - phpfpm
     labels:
